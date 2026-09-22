@@ -1,0 +1,476 @@
+ <!DOCTYPE html>
+  <html lang="es">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Control de Faltas FP</title>
+      <style>
+          :root {
+              --bg-color: #f0f2f5;
+              --card-bg: #ffffff;
+              --primary-color: #2563eb;
+              --text-main: #1f2937;
+              --text-muted: #6b7280;
+              --success: #10b981;
+              --warning: #f59e0b;
+              --danger: #ef4444;
+              --border-radius: 12px;
+              --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          }
+
+          * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+          body { background-color: var(--bg-color); color: var(--text-main); padding: 20px 10px; line-height: 1.5; }
+          .container { max-width: 600px; margin: 0 auto; }
+          header { text-align: center; margin-bottom: 24px; }
+          header h1 { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 8px; }
+          header p { color: var(--text-muted); font-size: 0.9rem; }
+
+          /* PANTALLA INICIAL */
+          #setup-screen { background: var(--card-bg); padding: 24px; border-radius: var(--border-radius); box-shadow:
+  var(--shadow); text-align: center; }
+          .setup-instructions { margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; text-align: left; }
+          .setup-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px;
+  font-size: 1rem; }
+          .setup-row { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; justify-content: center; }
+          .setup-row label { font-size: 0.9rem; color: var(--text-main); font-weight: 600; }
+          .setup-row input { width: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center;
+  font-size: 1rem; }
+          .btn-main { background: var(--primary-color); color: white; border: none; padding: 12px 24px; border-radius:
+  8px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; }
+
+          /* PANEL DE RESUMEN GLOBAL */
+          .global-summary {
+              background: linear-gradient(135deg, #2563eb, #1d4ed8);
+              color: white;
+              padding: 20px;
+              border-radius: var(--border-radius);
+              box-shadow: var(--shadow);
+              margin-bottom: 24px;
+              text-align: center;
+          }
+          .summary-title { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+          .summary-percent { font-size: 3rem; font-weight: 800; margin: 10px 0; }
+          .risk-list { background: rgba(255, 255, 255, 0.2); padding: 10px; border-radius: 8px; font-size: 0.85rem;
+  margin-top: 10px; text-align: left; }
+          .risk-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+
+          /* DASHBOARD */
+          #main-dashboard { display: none; }
+          .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+          .btn-add { background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 8px;
+  font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+          .modules-grid { display: grid; gap: 16px; }
+          .card { background: var(--card-bg); border-radius: var(--border-radius); padding: 16px; box-shadow:
+  var(--shadow); border-left: 6px solid var(--primary-color); position: relative; }
+
+          .card-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+          }
+          .card-title-group { display: flex; align-items: center; gap: 8px; }
+          .card-header h2 { font-size: 1.1rem; font-weight: 600; }
+
+          .edit-input {
+              font-size: 1.1rem;
+              font-weight: 600;
+              padding: 2px 5px;
+              border: 1px solid var(--primary-color);
+              border-radius: 4px;
+              width: auto;
+          }
+
+          .header-btns { display: flex; align-items: center; gap: 8px; }
+          .btn-icon { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1.1rem; transition: color
+  0.2s; padding: 4px; }
+          .btn-icon:hover { color: var(--primary-color); }
+          .btn-delete:hover { color: var(--danger); }
+
+          .config-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+          .input-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted);
+  background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+          .input-group input { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; text-align:
+  center; font-weight: 600; color: var(--text-main); }
+
+          .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size:
+  0.9rem; }
+          .stat-item { display: flex; flex-direction: column; }
+          .stat-label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+          .stat-value { font-weight: 700; font-size: 1rem; }
+          .progress-container { height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; margin-bottom:
+  15px; }
+          .progress-bar { height: 100%; width: 0%; transition: width 0.3s; background-color: var(--success); }
+          .controls { display: flex; justify-content: center; align-items: center; gap: 12px; }
+          .btn { border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; display:
+  flex; align-items: center; justify-content: center; }
+          .btn-minus { background: #ef444422; color: var(--danger); width: 36px; height: 36px; font-size: 1.2rem; }
+          .btn-plus { background: var(--primary-color); color: white; padding: 8px 16px; font-size: 0.9rem; }
+          .btn-multi { background: #e5e7eb; color: var(--text-main); padding: 8px 12px; font-size: 0.8rem; }
+          .status-warning { border-left-color: var(--warning); }
+          .status-danger { border-left-color: var(--danger); }
+          .text-warning { color: var(--warning); }
+          .text-danger { color: var(--danger); }
+
+          footer { text-align: center; margin-top: 30px; padding-bottom: 20px; }
+          .btn-config { background: white; border: 1px solid #ddd; color: var(--text-main); padding: 8px 16px;
+  border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+  transition: background 0.2s; }
+          .btn-config:hover { background: #f8fafc; }
+
+          /* MODAL DE CONFIGURACIÓN */
+          .modal-overlay {
+              position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+              background: rgba(0,0,0,0.5); display: none; justify-content: center;
+              align-items: center; z-index: 1000; backdrop-filter: blur(4px);
+          }
+          .modal {
+              background: white; padding: 24px; border-radius: var(--border-radius);
+              width: 90%; max-width: 400px; box-shadow: var(--shadow);
+          }
+          .modal-header { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; text-align: center; }
+          .modal-body { margin-bottom: 24px; }
+          .modal-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap:
+  10px; }
+          .modal-row input { width: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center;
+  font-size: 1rem; }
+          .modal-footer { display: flex; flex-direction: column; gap: 10px; }
+          .btn-save { background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 8px;
+  font-weight: 600; cursor: pointer; }
+          .btn-close { background: #e5e7eb; color: var(--text-main); border: none; padding: 12px; border-radius: 8px;
+  font-weight: 600; cursor: pointer; }
+          .btn-danger-area { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+          .btn-reset-danger { background: none; border: none; color: var(--danger); text-decoration: underline; cursor:
+  pointer; font-size: 0.8rem; width: 100%; text-align: center; }
+      </style>
+  </head>
+  <body>
+
+      <div class="container">
+          <header>
+              <h1>Control de Faltas FP</h1>
+              <p id="header-limit-text">Límite: 15% de las horas totales</p>
+          </header>
+
+          <div id="setup-screen">
+              <h2 style="margin-bottom: 15px;">Bienvenido</h2>
+              <div class="setup-instructions">
+                  <p>1. Introduce tus asignaturas separadas por comas:</p>
+                  <input type="text" id="subjects-input" class="setup-input" placeholder="IPE1, SOM, Redes, Ingles...">
+                  <p>2. Indica el % de faltas permitido por tu centro:</p>
+                  <div class="setup-row">
+                      <label>% Límite:</label>
+                      <input type="number" id="limit-input" value="15">
+                      <span>%</span>
+                  </div>
+              </div>
+              <button class="btn-main" onclick="initializeApp()">Empezar a controlar faltas</button>
+          </div>
+
+          <div id="main-dashboard">
+              <div class="global-summary">
+                  <div class="summary-title">Promedio General de Faltas</div>
+                  <div id="global-percent" class="summary-percent">0%</div>
+                  <div id="risk-container" class="risk-list">
+                      <strong>⚠️ Asignaturas en riesgo:</strong>
+                      <div id="risk-items">Ninguna por ahora</div>
+                  </div>
+              </div>
+
+              <div class="action-bar">
+                  <button class="btn-add" onclick="addNewSubject()"><span>+</span> Añadir Materia</button>
+              </div>
+
+              <div id="app" class="modules-grid"></div>
+
+              <footer>
+                  <button class="btn-config" onclick="openConfig()">⚙️ Configuración</button>
+              </footer>
+          </div>
+      </div>
+
+      <div id="config-modal" class="modal-overlay">
+          <div class="modal">
+              <div class="modal-header">Ajustes del Curso</div>
+              <div class="modal-body">
+                  <div class="modal-row">
+                      <span>% de faltas permitido:</span>
+                      <div>
+                          <input type="number" id="modal-limit-input" value="15">
+                          <span>%</span>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button class="btn-save" onclick="saveConfig()">Guardar Cambios</button>
+                  <button class="btn-close" onclick="closeConfig()">Cancelar</button>
+                  <div class="btn-danger-area">
+                      <button class="btn-reset-danger" onclick="resetAllData()">🗑️ Borrar todo y empezar de
+  cero</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <script>
+          const DEFAULT_HOURS = {
+              "ipe1": 100, "som": 200, "redes": 192, "ingles": 67,
+              "digitalizacion": 33, "montaje": 200, "ofimatica": 192, "tutoría": 33, "tutoria": 33
+          };
+
+          let state = {};
+          let subjectsList = [];
+          let globalLimit = 15;
+
+          function loadData() {
+              const savedData = localStorage.getItem('fp_faltas_data');
+              const savedSubjects = localStorage.getItem('fp_subjects_list');
+              const savedLimit = localStorage.getItem('fp_global_limit');
+
+              if (savedData && savedSubjects) {
+                  state = JSON.parse(savedData);
+                  subjectsList = JSON.parse(savedSubjects);
+                  globalLimit = savedLimit ? parseInt(savedLimit) : 15;
+                  showDashboard();
+              } else {
+                  showSetup();
+              }
+          }
+
+          function showSetup() {
+              document.getElementById('setup-screen').style.display = 'block';
+              document.getElementById('main-dashboard').style.display = 'none';
+          }
+
+          function showDashboard() {
+              document.getElementById('setup-screen').style.display = 'none';
+              document.getElementById('main-dashboard').style.display = 'block';
+              updateHeaderLimit();
+              render();
+          }
+
+          function updateHeaderLimit() {
+              document.getElementById('header-limit-text').innerText = `Límite: ${globalLimit}% de las horas totales`;
+          }
+
+          function initializeApp() {
+              const input = document.getElementById('subjects-input').value;
+              const limitVal = document.getElementById('limit-input').value;
+              if (!input.trim()) { alert("Por favor, introduce al menos una asignatura."); return; }
+              globalLimit = parseInt(limitVal) || 15;
+              subjectsList = input.split(',').map(s => s.trim()).filter(s => s !== "");
+              subjectsList.forEach(s => {
+                  const searchName = s.toLowerCase();
+                  let hours = 0;
+                  for (let key in DEFAULT_HOURS) {
+                      if (searchName.includes(key) || key.includes(searchName)) { hours = DEFAULT_HOURS[key]; break; }
+                  }
+                  state[s] = { totalHours: hours, absentHours: 0 };
+              });
+              saveData();
+              showDashboard();
+          }
+
+          function addNewSubject() {
+              const name = prompt("Nombre de la nueva asignatura:");
+              if (!name || name.trim() === "") return;
+              const cleanName = name.trim();
+              if (state[cleanName]) { alert("Esta asignatura ya existe."); return; }
+              const searchName = cleanName.toLowerCase();
+              let hours = 0;
+              for (let key in DEFAULT_HOURS) {
+                  if (searchName.includes(key) || key.includes(searchName)) { hours = DEFAULT_HOURS[key]; break; }
+              }
+              subjectsList.push(cleanName);
+              state[cleanName] = { totalHours: hours, absentHours: 0 };
+              saveData();
+              render();
+          }
+
+          // NUEVA FUNCIÓN: Cambiar nombre de materia
+          function renameSubject(oldName) {
+              const newName = prompt(`Nuevo nombre para ${oldName}:`, oldName);
+              if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
+
+              const cleanNewName = newName.trim();
+              if (state[cleanNewName]) {
+                  alert("Ya existe una asignatura con ese nombre.");
+                  return;
+              }
+
+              // Actualizar en la lista de materias
+              const index = subjectsList.indexOf(oldName);
+              subjectsList[index] = cleanNewName;
+
+              // Mover datos en el estado
+              state[cleanNewName] = state[oldName];
+              delete state[oldName];
+
+              saveData();
+              render();
+          }
+
+          function deleteSubject(modulo) {
+              if (confirm(`¿Eliminar ${modulo} de la lista?`)) {
+                  subjectsList = subjectsList.filter(s => s !== modulo);
+                  delete state[modulo];
+                  saveData();
+                  render();
+              }
+          }
+
+          function saveData() {
+              localStorage.setItem('fp_faltas_data', JSON.stringify(state));
+              localStorage.setItem('fp_subjects_list', JSON.stringify(subjectsList));
+              localStorage.setItem('fp_global_limit', globalLimit);
+          }
+
+          function updateHours(modulo, value) {
+              state[modulo].totalHours = parseInt(value) || 0;
+              saveData();
+              render();
+          }
+
+          function changeAbsence(modulo, amount) {
+              state[modulo].absentHours += amount;
+              if (state[modulo].absentHours < 0) state[modulo].absentHours = 0;
+              saveData();
+              render();
+          }
+
+          function calculateGlobalStats() {
+              let totalPercentSum = 0;
+              let validModules = 0;
+              let riskModules = [];
+              subjectsList.forEach(modulo => {
+                  const data = state[modulo];
+                  const limit = Math.floor(data.totalHours * (globalLimit / 100));
+                  if (limit > 0) {
+                      const percent = (data.absentHours / limit) * 100;
+                      totalPercentSum += percent;
+                      validModules++;
+                      if (percent > 50) { riskModules.push({ name: modulo, percent: Math.round(percent) }); }
+                  }
+              });
+              const avgPercent = validModules > 0 ? (totalPercentSum / validModules) : 0;
+              document.getElementById('global-percent').innerText = Math.round(avgPercent) + '%';
+              const riskItemsDiv = document.getElementById('risk-items');
+              if (riskModules.length > 0) {
+                  riskModules.sort((a, b) => b.percent - a.percent);
+                  riskItemsDiv.innerHTML = riskModules.map(m =>
+                      `<div class="risk-item"><span>${m.name}</span> <strong>${m.percent}%</strong></div>`
+                  ).join('');
+              } else {
+                  riskItemsDiv.innerText = "Ninguna por ahora";
+              }
+          }
+
+          function render() {
+              const app = document.getElementById('app');
+              app.innerHTML = '';
+
+              subjectsList.forEach(modulo => {
+                  const data = state[modulo];
+                  const limit = Math.floor(data.totalHours * (globalLimit / 100));
+                  const remaining = limit - data.absentHours;
+                  const percent = limit > 0 ? (data.absentHours / limit) * 100 : 0;
+
+                  let statusClass = '';
+                  let barColor = 'var(--success)';
+                  let valueClass = '';
+
+                  if (percent >= 100) { statusClass = 'status-danger'; barColor = 'var(--danger)'; valueClass =
+  'text-danger'; }
+                  else if (percent >= 80) { statusClass = 'status-warning'; barColor = 'var(--warning)'; valueClass =
+  'text-warning'; }
+
+                  const card = document.createElement('div');
+                  card.className = `card ${statusClass}`;
+                  card.innerHTML = `
+                      <div class="card-header">
+                          <div class="card-title-group">
+                              <h2>${modulo}</h2>
+                              <button class="btn-icon" onclick="renameSubject('${modulo}')"
+  title="Renombrar">✏️</button>
+                          </div>
+                          <div class="header-btns">
+                              <button class="btn-icon btn-delete" onclick="deleteSubject('${modulo}')" title="Eliminar
+  asignatura">🗑️</button>
+                          </div>
+                      </div>
+
+                      <div class="config-row">
+                          <div class="input-group">
+                              <span>Total h:</span>
+                              <input type="number" value="${data.totalHours}" onchange="updateHours('${modulo}',
+  this.value)">
+                          </div>
+                      </div>
+
+                      <div class="stats-grid">
+                          <div class="stat-item"><span class="stat-label">Límite (${globalLimit}%)</span><span
+  class="stat-value">${limit}h</span></div>
+                          <div class="stat-item"><span class="stat-label">Faltas</span><span
+  class="stat-value">${data.absentHours}h</span></div>
+                          <div class="stat-item"><span class="stat-label">Disponibles</span><span class="stat-value
+  ${valueClass}">${remaining}h</span></div>
+                          <div class="stat-item"><span class="stat-label">Uso Límite</span><span class="stat-value
+  ${valueClass}">${Math.round(percent)}%</span></div>
+                      </div>
+
+                      <div class="progress-container">
+                          <div class="progress-bar" style="width: ${Math.min(percent, 100)}%; background-color:
+  ${barColor}"></div>
+                      </div>
+
+                      <div class="controls">
+                          <button class="btn btn-minus" onclick="changeAbsence('${modulo}', -1)">−</button>
+                          <button class="btn btn-plus" onclick="changeAbsence('${modulo}', 1)">+1 hora</button>
+                          <button class="btn btn-multi" onclick="addMultiHour('${modulo}')">+ Varias</button>
+                      </div>
+                  `;
+                  app.appendChild(card);
+              });
+
+              calculateGlobalStats();
+          }
+
+          function addMultiHour(modulo) {
+              const amount = prompt(`¿Cuántas horas sumar a ${modulo}?`);
+              if (amount && !isNaN(amount)) changeAbsence(modulo, parseInt(amount));
+          }
+
+          function openConfig() {
+              document.getElementById('modal-limit-input').value = globalLimit;
+              document.getElementById('config-modal').style.display = 'flex';
+          }
+
+          function closeConfig() {
+              document.getElementById('config-modal').style.display = 'none';
+          }
+
+          function saveConfig() {
+              const newLimit = document.getElementById('modal-limit-input').value;
+              globalLimit = parseInt(newLimit) || 15;
+              saveData();
+              updateHeaderLimit();
+              render();
+              closeConfig();
+          }
+
+          function resetAllData() {
+              if (confirm("¿Estás seguro? Borrarás todas las asignaturas, faltas y la configuración de límite.")) {
+                  localStorage.clear();
+                  state = {};
+                  subjectsList = [];
+                  globalLimit = 15;
+                  closeConfig();
+                  showSetup();
+              }
+          }
+
+          loadData();
+      </script>
+  </body>
+  </html>
