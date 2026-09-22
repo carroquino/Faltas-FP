@@ -4,6 +4,8 @@
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Control de Faltas FP</title>
+      <!-- Esto pone el logo en la pestaña del navegador -->
+      <link rel="icon" type="image/png" href="logo.png">
       <style>
           :root {
               --bg-color: #f0f2f5;
@@ -21,6 +23,18 @@
           * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
           body { background-color: var(--bg-color); color: var(--text-main); padding: 20px 10px; line-height: 1.5; }
           .container { max-width: 600px; margin: 0 auto; }
+
+          /* ESTILOS DEL LOGO */
+          .logo-container {
+              text-align: center;
+              margin-bottom: 15px;
+          }
+          .main-logo {
+              width: 120px; /* Tamaño ideal para que se vea bien */
+              height: auto;
+              filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+          }
+
           header { text-align: center; margin-bottom: 24px; }
           header h1 { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 8px; }
           header p { color: var(--text-muted); font-size: 0.9rem; }
@@ -149,6 +163,10 @@
 
       <div class="container">
           <header>
+              <!-- SECCIÓN DEL LOGO AÑADIDA AQUÍ -->
+              <div class="logo-container">
+                  <img src="logo.png" alt="Logo Control Faltas" class="main-logo">
+              </div>
               <h1>Control de Faltas FP</h1>
               <p id="header-limit-text">Límite: 15% de las horas totales</p>
           </header>
@@ -288,7 +306,6 @@
               render();
           }
 
-          // NUEVA FUNCIÓN: Cambiar nombre de materia
           function renameSubject(oldName) {
               const newName = prompt(`Nuevo nombre para ${oldName}:`, oldName);
               if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
@@ -299,11 +316,9 @@
                   return;
               }
 
-              // Actualizar en la lista de materias
               const index = subjectsList.indexOf(oldName);
               subjectsList[index] = cleanNewName;
 
-              // Mover datos en el estado
               state[cleanNewName] = state[oldName];
               delete state[oldName];
 
